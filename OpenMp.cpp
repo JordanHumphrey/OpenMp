@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdio>
 #include <chrono>
+#include <vector>
 using namespace std;
 
 #include <omp.h>
@@ -61,8 +62,12 @@ void single_master()
 {
 #pragma omp parallel
 	{
-#pragma omp single
-		printf("gathering input: %d\n", omp_get_thread_num());
+#pragma omp single nowait
+		{
+			int n;
+			cin >> n;
+			printf("gathering input: %d\n", omp_get_thread_num());
+		}
 
 		printf("in parallel on %d\n", omp_get_thread_num());
 
@@ -73,12 +78,44 @@ void single_master()
 	}
 }
 
+void sync()
+{
+	printf("\nATOMIC\n");
+
+	int sum = 0;
+#pragma omp parallel for num_threads(128)
+	for (int i = 0; i < 100; i++)
+	{
+#pragma omp atomic
+		++sum;
+	}
+
+	cout << sum;
+
+	printf("\nORDERED\n");
+
+	vector<int> squares;
+#pragma omp parallel for ordered
+	for (int i = 0; i < 20; ++i)
+	{
+		printf("%d : %d\t", omp_get_thread_num(), i);
+		int j = i * i;
+
+#pragma omp ordered
+		squares.push_back(j);
+	}
+
+	printf("\n");
+	for (auto v : squares) printf("%d\t", v);
+}
+
 int main(int argc, char* argv[])
 {
 	//hello_openmp();
 	//pfor();
 	//sections();
-	single_master();
+	//single_master();
+	//sync();
 
 	return 0;
 }
