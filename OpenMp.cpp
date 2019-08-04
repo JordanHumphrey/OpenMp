@@ -109,6 +109,20 @@ void sync()
 	for (auto v : squares) printf("%d\t", v);
 }
 
+void data_sharing()
+{
+	int i = 10;
+
+#pragma omp parallel for firstprivate(i)
+	for (int a = 0; a < 10; a++)
+	{
+		printf("thread %d: i = %d\n", omp_get_thread_num(), i);
+		i = 1000 + omp_get_thread_num();
+	}
+
+	printf("%d\n", i);
+}
+
 int main(int argc, char* argv[])
 {
 	//hello_openmp();
@@ -116,6 +130,8 @@ int main(int argc, char* argv[])
 	//sections();
 	//single_master();
 	//sync();
+
+	data_sharing();
 
 	return 0;
 }
